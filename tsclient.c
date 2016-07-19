@@ -81,7 +81,14 @@ int main(int argc, char **argv) {
 
     timecmd_t *tmpcmd = (timecmd_t *) &buf[0];
     timecmd_print(tmpcmd);
-    printf("Net latency %d usec\n", deltausec(starttime, endtime));
+    int delta = deltausec(starttime, endtime);
+    printf("Net latency %d usec\n", delta);
+
+    struct timeval remotetime;
+    remotetime.tv_usec = tmpcmd->usec;
+    remotetime.tv_sec = tmpcmd->sec;
+    int shift = deltausec(remotetime, endtime);
+    printf("Time shift %d usec\n", shift - delta);
 
     return 0;
 }
