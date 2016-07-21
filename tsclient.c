@@ -13,7 +13,8 @@
 #define BUFSIZE 1024
 
 int main(int argc, char **argv) {
-    int sockfd, portno, n;
+    int sockfd, portno;
+    ssize_t n;
     socklen_t serverlen;
     struct sockaddr_in serveraddr;
     struct hostent *server;
@@ -61,17 +62,14 @@ int main(int argc, char **argv) {
     command.cmd = CMD_GETTIME;
     command.id = 1;
 
-    /* send the message to the server */
     serverlen = sizeof(serveraddr);
     n = sendto(sockfd, &command, sizeof(timecmd_t), 0, (struct sockaddr *) &serveraddr, serverlen);
-    printf("n %d\n", n);
     gettimeofday(&starttime, NULL);
     if (n < 0) {
       perror("sendto");
       return 1;
     }
     
-    /* print the server's reply */
     n = recvfrom(sockfd, buf, sizeof(timecmd_t), 0, (struct sockaddr *) &serveraddr, &serverlen);
     gettimeofday(&endtime, NULL);
     if (n < 0) {
@@ -79,16 +77,27 @@ int main(int argc, char **argv) {
       return 1;
     }
 
+    int net_delta = deltausec(starttime, endtime);
+    printf("Net latency %d usec\n", net_delta);
+
     timecmd_t *tmpcmd = (timecmd_t *) &buf[0];
     timecmd_print(tmpcmd);
-    int delta = deltausec(starttime, endtime);
-    printf("Net latency %d usec\n", delta);
 
     struct timeval remotetime;
     remotetime.tv_usec = tmpcmd->usec;
     remotetime.tv_sec = tmpcmd->sec;
-    int shift = deltausec(remotetime, endtime);
-    printf("Time shift %d usec\n", shift - delta);
+    int shift_msec = (deltausec(remotetime, endtime) - (net_delta /2)) / 1000 ;
+    printf("Time shift %d msec\n", shift_msec);
+
+    if( abs(shift_msec) > 0 ) {
+    	int set_time_result = settimeofday(&remotetime, NULL);
+	if( set_time_result != 0 ) {
+    	    perror("settime");
+	}
+    }
+    else {
+        printf("Shift less then millisecond. No sense to adjust.\n");
+    }
 
     return 0;
 }

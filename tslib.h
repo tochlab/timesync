@@ -6,12 +6,12 @@
 #define CMD_GETTIME 2
 
 typedef struct {
-	int8_t version;
-	int8_t cmd;
+	int32_t version;
+	int32_t cmd;
 	int32_t id;
 	int32_t sec;
 	int32_t usec;
-	int32_t reserved[8]; /* Not used now */
+	int32_t checksum;
 } timecmd_t;
 
 
