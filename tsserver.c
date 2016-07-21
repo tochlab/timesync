@@ -17,7 +17,7 @@ int main() {
 	struct sockaddr_in serveraddr; /*  server's addr */
 	struct sockaddr_in clientaddr; /*  client addr */
 	char buf[BUFSIZE]; /*  message buf */
-	size_t n; /*  message byte size */
+	ssize_t n; /*  message byte size */
 	char *hostaddrp; /*  dotted decimal host addr string */
 	
 	int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
